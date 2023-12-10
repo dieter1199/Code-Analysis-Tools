@@ -22,10 +22,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 function loginUser($conn) {
     $username = $_REQUEST['username'];
-    $userPassword = $_REQUEST['password']; 
-    $md5Hash = md5($userPassword); 
+    $userPassword = $_REQUEST['password'];
+    $secureHash = password_hash($userPassword, PASSWORD_DEFAULT);
 
-    $sql = "SELECT * FROM users WHERE username = '$username' AND password = '$md5Hash'";
+    $sql = "SELECT * FROM users WHERE username = '$username' AND password = '$secureHash'";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
@@ -39,9 +39,9 @@ function loginUser($conn) {
 function registerUser($conn) {
     $username = $_REQUEST['username'];
     $userPassword = $_REQUEST['password'];
-    $md5Hash = md5($userPassword);
-
-    $sql = "INSERT INTO users (username, password) VALUES ('$username', '$md5Hash')";
+    $secureHash = password_hash($userPassword, PASSWORD_DEFAULT);
+    
+    $sql = "INSERT INTO users (username, password) VALUES ('$username', '$secureHash')";
     if ($conn->query($sql) === TRUE) {
         echo "Neuer Benutzer erfolgreich registriert!";
     } else {

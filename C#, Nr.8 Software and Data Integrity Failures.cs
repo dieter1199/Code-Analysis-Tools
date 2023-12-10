@@ -33,8 +33,15 @@ public class Server : Controller {
     }
 
     public FileContentResult RetrieveImage(string img_path) {
-        byte[] img = System.IO.File.ReadAllBytes(img_path);
+       string abs_img_path = Path.GetFullPath(img_path);
 
+       string base_dir = "C:\Applications\Documents";
+
+       if ( !abs_img_path.StartsWith(base_dir) ) {
+           return null;
+       }
+
+       bytes[] img = System.IO.File.ReadAllBytes(abs_img_path);
         if (img == null) {
             return null;
         }

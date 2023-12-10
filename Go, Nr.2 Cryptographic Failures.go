@@ -1,72 +1,36 @@
 package main
 
 import (
-    "crypto/md5"
-    "encoding/hex"
     "fmt"
+    "golang.org/x/crypto/bcrypt"
     "net/http"
-    "log"
-    "io/ioutil"
-    "encoding/json"
 )
 
-type User struct {
-    Username string `json:"username"`
-    Password string `json:"password"`
-}
-
 func main() {
-    http.HandleFunc("/submit", handleSubmit)
-    http.HandleFunc("/register", handleRegister)
-    fmt.Println("Server läuft auf Port 8080")
-    log.Fatal(http.ListenAndServe(":8080", nil))
+    // Starten eines einfachen HTTP-Servers
+    http.HandleFunc("/signup", signupHandler)
+    http.HandleFunc("/login", loginHandler)
+    http.ListenAndServe(":8080", nil)
 }
 
-func handleSubmit(w http.ResponseWriter, r *http.Request) {
-    if r.Method != "POST" {
-        w.WriteHeader(http.StatusMethodNotAllowed)
-        fmt.Fprintf(w, "Nur POST-Anfragen sind erlaubt")
-        return
-    }
+func signupHandler(w http.ResponseWriter, r *http.Request) {
+    // Dummy-Logik für die Benutzerregistrierung
+    fmt.Fprintf(w, "Benutzerregistrierung (Dummy)")
+}
+
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+    // Parsen des Formulars
+    _ = r.ParseForm()
 
     var password = r.Form.Get("password")
-    hasher := md5.New()
-    hasher.Write([]byte(password))
-    var MD5Hash = hex.EncodeToString(hasher.Sum(nil))
+    var passwordBytes = []byte(password)
 
-    fmt.Fprintf(w, "MD5-Hash des Passworts: %s", MD5Hash)
-
-    if validatePassword(MD5Hash) {
-        fmt.Fprintf(w, "Passwort validiert.")
-    } else {
-        fmt.Fprintf(w, "Ungültiges Passwort.")
-    }
-}
-
-func handleRegister(w http.ResponseWriter, r *http.Request) {
-    if r.Method != "POST" {
-        w.WriteHeader(http.StatusMethodNotAllowed)
-        fmt.Fprintf(w, "Nur POST-Anfragen sind erlaubt")
-        return
-    }
-
-    var newUser User
-    body, err := ioutil.ReadAll(r.Body)
+    hashedPasswordBytes, err := bcrypt.GenerateFromPassword(passwordBytes, bcrypt.MinCost)
     if err != nil {
-        http.Error(w, "Fehler beim Lesen des Body", http.StatusBadRequest)
+        fmt.Fprintf(w, "Fehler bei der Passwort-Hash-Erstellung: %s", err)
         return
     }
 
-    err = json.Unmarshal(body, &newUser)
-    if err != nil {
-        http.Error(w, "Fehler beim Parsen des JSON", http.StatusBadRequest)
-        return
-    }
-
-    fmt.Fprintf(w, "Benutzer %s erfolgreich registriert.", newUser.Username)
+    // Dummy-Logik für die Authentifizierung
+    fmt.Fprintf(w, "Login erfolgreich (Dummy), gehashtes Passwort: %s", string(hashedPasswordBytes))
 }
-
-func validatePassword(hash string) bool {
-    return hash == "someHashValue"
-}
-

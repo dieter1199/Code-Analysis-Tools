@@ -1,24 +1,28 @@
-<?php
-$db = new SQLite3('application.db');
+function login() {
 
-session_start();
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
-function checkPermissions() {
-    return isset($_SESSION['username']);
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+
+    // check amount of failed login attempts
+    if(get_user($_POST['username'])->$login_attempts <= 5) {
+
+        if (auth($username, $password) == true) {
+            get_user($_POST['username'])->reset_login_attempts();
+            header('Location: /dashboard');
+            exit();
+        } else {
+            echo "Incorrect Credentials Supplied";
+            get_user($_POST['username'])->increment_login_attempts();
+            header('Location: /login');
+            exit();
+        }
+    } else {
+        echo "Too many tries, account locked";
+        lock_account($_POST['username']);
+        header("Location: /login");
+        exit();
+    }
 }
-
-function homePage() {
-    echo "Welcome to the home page!";
-}
-
-$smt = $db->prepare("INSERT INTO comments (user, comment, profile) VALUES (:name, :comment, :profile)");
-$smt->bindValue(':name', $_SESSION['username'], SQLITE3_TEXT);
-$smt->bindValue(':comment', $_POST['comment'], SQLITE3_TEXT);
-$smt->bindValue(':profile', $_POST['profile'], SQLITE3_TEXT);
-
-$smt->execute();
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && checkPermissions()) {
-} else {
-    homePage();
 }

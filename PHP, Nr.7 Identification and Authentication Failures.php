@@ -1,30 +1,32 @@
 <?php
-
-function auth($username, $password) {
-    return $username === "admin" && $password === "password";
-}
-
-function handleGetRequest() {
-    echo "Please log in to continue.";
-}
-
+ 
 function login() {
+ 
+    // Set up recaptcha data keys and URLs here
+ 
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+ 
         $username = $_POST['username'];
         $password = $_POST['password'];
-
-        if (auth($username, $password) == true) {
-            header('Location: /dashboard');
-            exit();
+ 
+        // Check RECaptcha
+        $response_json = check_recaptcha($_POST['recaptcha_response']);
+ 
+        // If successful, and score is greater than 0.5, continue with login
+        if($response_json->success == true && $response_json->score>=0.5){
+            if (auth($username, $password) == true) {
+                header('Location: /dashboard');
+                exit();
+            } else {
+                echo "Incorrect Credentials Supplied";
+                header('Location: /login');
+                exit();
+            }
         } else {
-            echo "Incorrect Credentials Supplied\n";
-            header('Location: /login');
+            echo "You're a bot";
+            header("Location: /login");
+            exit();
         }
     }
 }
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    login();
-} else {
-    handleGetRequest();
-}
+?>

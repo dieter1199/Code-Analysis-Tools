@@ -22,7 +22,7 @@ function main() {
 
 function greetUser() {
     $name = $_GET['name'];
-    eval('echo "Hi there, " . strtoupper("'.$name.'");');
+    echo "Hi there, " . htmlspecialchars(strtoupper($name));
 }
 
 initializeApplication();

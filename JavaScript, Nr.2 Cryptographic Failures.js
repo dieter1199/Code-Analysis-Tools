@@ -1,40 +1,37 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
-const { createHash } = require('node:crypto');
 
 const app = express();
+const port = 3000;
+
+// Body-parser Middleware
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-let users = {
-    "user1": { "password": "5f4dcc3b5aa765d61d8327deb882cf99" }, 
-};
-
-app.post('/login', (req, res) => {
-    const { username, password } = req.body;
-    const md5Hash = createHash('md5').update(password).digest('hex');
-    if (users[username] && users[username].password === md5Hash) {
-        res.send({ message: "Erfolgreich eingeloggt!" });
-    } else {
-        res.status(401).send({ message: "Ungültiger Benutzername oder Passwort" });
-    }
+// Dummy-Route für die Registrierung (nur als Beispiel)
+app.post('/register', async (req, res) => {
+    const username = req.body.username;
+    const password = req.body.password;
+    // Hier würde normalerweise die Logik für die Registrierung stehen.
+    res.send('Benutzerregistrierung erfolgreich (Dummy-Antwort)');
 });
 
-app.post('/register', (req, res) => {
-    const { username, password } = req.body;
-    if (users[username]) {
-        res.status(400).send({ message: "Benutzername bereits vergeben" });
-        return;
-    }
-    const md5Hash = createHash('md5').update(password).digest('hex');
-    users[username] = { password: md5Hash };
-    res.send({ message: "Benutzer erfolgreich registriert" });
+app.post('/login', async (req, res) => {
+    const userPassword = req.body.password;
+    const salt = await bcrypt.genSalt();
+    const passwordHash = await bcrypt.hash(userPassword, salt);
+    res.send('Login erfolgreich (Dummy-Antwort)');
 });
 
-app.get('/users', (req, res) => {
-    res.json(users);
+// Zusätzliche Dummy-Route für Passwort-Reset
+app.post('/reset-password', (req, res) => {
+    const email = req.body.email;
+    // Hier würde normalerweise die Logik für das Zurücksetzen des Passworts stehen.
+    res.send('Passwort-Reset Link gesendet (Dummy-Antwort)');
 });
 
-const PORT = 3000;
-app.listen(PORT, () => {
-    console.log(`Server läuft auf Port ${PORT}`);
+// Server-Start
+app.listen(port, () => {
+    console.log(`Server läuft auf Port ${port}`);
 });

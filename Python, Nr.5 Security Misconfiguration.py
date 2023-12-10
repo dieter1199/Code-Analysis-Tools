@@ -1,6 +1,8 @@
 from flask import Flask, request
 from lxml import etree
 
+parser = etree.XMLParser(resolve_entities=False)
+
 app = Flask(__name__)
 
 def addToFavorites(favourite):
@@ -9,10 +11,11 @@ def addToFavorites(favourite):
 @app.route('/')
 def home():
     return 'Welcome to the Favourites Application!'
-
+ 
 @app.route('/profile/favourites', methods=['POST'])
 def favourite():
-    favourite = etree.fromstring(request.data).find("item").text
+    favourite = etree.fromstring(request.data, parser=parser).find("item").text
+    # addToFavorites(favourite)
     return "Favourite {} saved".format(favourite)
 
 @app.route('/about')

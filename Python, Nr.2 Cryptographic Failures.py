@@ -12,12 +12,13 @@ def get_db_connection():
 @app.route('/register', methods=['POST'])
 def register():
     username = request.form['username']
-    psw = request.form['password']
-    md5_hash = hashlib.md5(psw.encode('utf-8')).hexdigest()  
+    salt = os.urandom(32)
+    psw = request.form['password'].encode()
+    secure_hash = hashlib.pbkdf2_hmac('sha256', psw, salt, 10000)
 
     conn = get_db_connection()
     conn.execute('INSERT INTO users (username, password) VALUES (?, ?)', 
-                 (username, md5_hash))
+                 (username, secure_hash))
     conn.commit()
     conn.close()
 
@@ -26,12 +27,13 @@ def register():
 @app.route('/login', methods=['POST'])
 def login():
     username = request.form['username']
-    psw = request.form['password']
-    md5_hash = hashlib.md5(psw.encode('utf-8')).hexdigest()  
+    salt = os.urandom(32)
+    psw = request.form['password'].encode()
+    secure_hash = hashlib.pbkdf2_hmac('sha256', psw, salt, 10000)
 
     conn = get_db_connection()
     user = conn.execute('SELECT * FROM users WHERE username = ? AND password = ?', 
-                        (username, md5_hash)).fetchone()
+                        (username, secure_hash)).fetchone()
     conn.close()
 
     if user:

@@ -1,34 +1,34 @@
 #include <crow.h>
 #include <libxml/parser.h>
-#include <string>
-#include <iostream>
-
-void addToFavorites(const std::string& value) {
-
-    std::cout << "Added " << value << " to favorites." << std::endl;
-}
 
 int main() {
-    crow::SimpleApp app;
+  crow::SimpleApp app;
 
-    CROW_ROUTE(app, "/")( [] {
-        return "Welcome to the application!";
-    });
-
-    CROW_ROUTE(app, "/status")( [] {
-        return "Application is running.";
-    });
-
-    CROW_ROUTE(app, "/profile/favourite").methods("POST"_method)([](const crow::request &req) {
+  // Add a route to handle POST requests to /profile/favourite
+  CROW_ROUTE(app, "/profile/favourite")
+      .methods("POST"_method)([](const crow::request &req) {
+        // Initialize libxml2
         xmlInitParser();
-        xmlDocPtr doc = xmlReadDoc(reinterpret_cast<const xmlChar *>(req.body.c_str()), NULL, NULL, XML_PARSE_NOENT);
+
+        // Parse the XML string with XML_PARSE_NOENT option to allow external
+        // entities
+        xmlDocPtr doc = xmlReadDoc(
+            reinterpret_cast<const xmlChar *>(req.body.c_str()), NULL, NULL, 0);
+
+        // Get the content of the favourite element
         xmlNodePtr favourite = xmlDocGetRootElement(doc);
-        std::string value = reinterpret_cast<const char *>(xmlNodeGetContent(favourite));
+        std::string value =
+            reinterpret_cast<const char *>(xmlNodeGetContent(favourite));
+
+        // Add the item to favorites
         addToFavorites(value);
+
+        // Free memory
         xmlFreeDoc(doc);
         xmlCleanupParser();
-        return crow::response{"Favourite " + value + " saved"};
-    });
 
-    app.port(8888).multithreaded().run();
+        // Return the response
+        return crow::response{"Favourite " + value + " saved"};
+      });
+  app.port(8888).multithreaded().run();
 }

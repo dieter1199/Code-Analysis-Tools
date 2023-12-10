@@ -25,7 +25,11 @@ function readFile(filePath) {
 
 export function getFileSystemPath(inputUrl) {
     const urlPath = url.parse(inputUrl).pathname;
-    return path.join(BASE_DIR, urlPath);
+    const normalizedPath = path.normalize(urlPath);
+	if (!normalizedPath.startsWith('/public')){
+		throw new Error('Illegal path supplied in the input url: ' + urlPath);  
+	}
+	return path.join(BASE_DIR, normalizedPath);
 }
 
 function handleRequest(inputUrl) {

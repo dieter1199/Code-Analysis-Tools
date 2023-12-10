@@ -16,7 +16,7 @@ function addToFavorites(favorite) {
 }
 
 app.post("/profile/favorites", (req, res) => {
-  let favorite = libxml.parseXml(req.body, { noent: true });
+  favorite = libxml.parseXml(req.body);
   addToFavorites(favorite);
   res.send("Favorite added successfully.");
 });

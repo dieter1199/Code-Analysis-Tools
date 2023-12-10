@@ -17,10 +17,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $expDate = $_POST['expDate'];
     $CVV = $_POST['CVV'];
     $orderNumber = $_POST['orderNumber'];
-
+    $success = true;
     $success = processPayment($CCNumber, $expDate, $CVV, $orderNumber);
-    logPayment($success, $_POST);
-}
+    $log = array('payment' => $success, 'order' => $_REQUEST['orderNumber']);
+    file_put_contents('log.txt', json_encode($log), FILE_APPEND);}
 
 function displayForm() {
 }

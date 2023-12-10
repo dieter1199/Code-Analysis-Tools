@@ -18,16 +18,25 @@ function redirect(path, message) {
 }
 
 app.post('/login', (req, res) => {
-    let username = req.query.username;
-    let password = req.query.password;
-
-    if (is_valid_login(username, password)) {
-        start_session(username);
-        redirect('/dashboard', 'Login successful!');
+    username = req.query.username;
+    password = req.query.password;
+   
+    // check valid credentials
+    if is_valid_login(username, password){
+        // check if captcha is valid
+        if verify_recaptcha(response_token){
+            // authentication successful
+            start_session(username);
+            redirect('/dashboard', 'Login successful!');
+        } else {
+            // captcha not successful, it's a bot!
+            redirect('/login', 'RECaptcha token invalid, you\'re a bot!');
+        }
     } else {
+        // incorrect credentials
         redirect('/login', 'Username or password incorrect');
     }
-});
+})
 
 app.get('/', (req, res) => {
     res.send('Welcome to the application!');

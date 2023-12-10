@@ -1,40 +1,23 @@
-const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
-const app = express();
-const PORT = 3000;
+app.post('/login', (req, res) => {
+    const MAX_FAILED_LOGINS = 5;
+    username = req.query.username;
+    password = req.query.password;
+   
+    // If there has been too many logins, send a forbidden response
+    if (get_user_from_username(username).failed_login_count >= MAX_FAILED_LOGINS) {
 
-let db = new sqlite3.Database('./mydb.sqlite3', sqlite3.OPEN_READWRITE, (err) => {
-    if (err) {
-        console.error(err.message);
+        res.send(403,"Account locked due to too many failed login attempts, contact support.");
     }
-    console.log('Connected to the SQLite database.');
-});
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-app.get('/', (req, res) => {
-    res.send('Welcome to the application!');
-});
-
-app.post('/comments', (req, res) => {
-    let comment = req.query.comment;
-    let profileid = req.query.profileID;
-
-    // insert comment into database
-    db.run(`INSERT INTO comments(comment,profileid) VALUES(?,?)`, [comment, profileid], function(err) {
-        if (err) {
-            return console.log(err.message);
-        }
-
-        // close the database connection
-        db.close();
-    });
-});
-
-// More routes and logic
-// ...
-
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
+    // check valid credentials
+    if (is_valid_login(username, password)){
+        // authentication successful, reset counter and login
+        reset_failed_login_counter(username);
+        start_session(username);
+        redirect('/dashboard', 'Login successful!');
+    } else {
+        // incorrect credentials, increment failed login counter
+        increment_failed_login_counter(username);
+        redirect('/login', 'Username or password incorrect');
+    }
+})

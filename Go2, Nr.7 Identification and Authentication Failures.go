@@ -1,43 +1,20 @@
-package main
-
-import (
-    "database/sql"
-    "fmt"
-    "log"
-    "net/http"
-    _ "github.com/lib/pq"
-)
-
-var db *sql.DB
-
-func init() {
-    var err error
-    db, err = sql.Open("postgres", "user=postgres dbname=mydb sslmode=disable")
-    if err != nil {
-        log.Fatal(err)
-    }
-}
-
-func homePage(w http.ResponseWriter, r *http.Request) {
-    fmt.Fprint(w, "Welcome to the Home Page!")
-}
-
-func comment(w http.ResponseWriter, r *http.Request) {
+func login(w http.ResponseWriter, r * http.Request) {
     r.ParseForm()
+    username: = r.PostForm.Get("username")
+    password: = r.PostForm.Get("password")
 
-    stmt, err := db.Prepare("INSERT INTO comments (user, comment, profile) VALUES ($1, $2, $3)")
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
+    if (loginAttempts(username) <= 5) {
+        if auth(username, password) == true {
+            resetLoginAttempts(username)
+            http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+        } else {
+            increaseLoginAttempts()
+            fmt.Fprint(w, "Incorrect Credentials Supplied")
+            http.Redirect(w, r, "/login", http.StatusSeeOther)
+        }
+    } else {
+        lockAccount(username)
+        fmt.Fprint(w, "Your account has been locked out")
+        http.Redirect(w, r, "/login", http.StatusSeeOther)
     }
-    _, err = stmt.Exec(r.PostForm.Get("username"), r.PostForm.Get("comment"), r.PostForm.Get("profile"))
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-    }
-}
-
-func main() {
-    http.HandleFunc("/", homePage)
-    http.HandleFunc("/comment", comment)
-    http.ListenAndServe(":8080", nil)
 }

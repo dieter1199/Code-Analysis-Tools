@@ -1,24 +1,16 @@
-package main
-
-import (
-    "fmt"
-    "net/http"
-)
-
-func auth(username, password string) bool {
-    return username == "admin" && password == "password"
-}
-
-func home(w http.ResponseWriter, r *http.Request) {
-    fmt.Fprint(w, "Welcome to the Application!")
-}
-
-func login(w http.ResponseWriter, r *http.Request) {
+func login(w http.ResponseWriter, r * http.Request) {
+    // Set up recaptcha data keys and URLs here
     r.ParseForm()
-    username := r.PostForm.Get("username")
-    password := r.PostForm.Get("password")
 
-    if auth(username, password) {
+    // Rate limit via recaptcha
+    if err: = recaptcha(r.PostForm.Get("recaptchaResponse"));
+    err != nil {
+        http.Error(w, "Unauthorized", http.StatusUnauthorized)
+        return
+    }
+
+    // Check login credentials.
+    if auth(r.PostForm.Get("username"), r.PostForm.Get("password")) == true {
         http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
     } else {
         fmt.Fprint(w, "Incorrect Credentials Supplied")
@@ -26,13 +18,17 @@ func login(w http.ResponseWriter, r *http.Request) {
     }
 }
 
-func dashboard(w http.ResponseWriter, r *http.Request) {
-    fmt.Fprint(w, "Welcome to the Dashboard!")
-}
+func recaptcha(response string) {
+    // sent response to Google to verify (https://www.google.com/recaptcha/api/siteverify)
 
-func main() {
-    http.HandleFunc("/", home)
-    http.HandleFunc("/login", login)
-    http.HandleFunc("/dashboard", dashboard)
-    http.ListenAndServe(":8080", nil)
+    if !body.Success {
+        return errors.New("Unsuccessful attempt")
+    }
+
+    // If successful, and score is greater than 0.5, continue
+    if response.Score < 0.5 {
+        return errors.New("Unsuccessful attempt")
+    }
+
+    return nil
 }

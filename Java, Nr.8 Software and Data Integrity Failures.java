@@ -22,8 +22,12 @@ public class FsPathResolver {
 
     }
 
-    public Path getFileSystemPath(URL inputURL) {
+    public Path getFileSystemPath(URL inputURL) throws Exception {
         String urlPath = inputURL.getPath();
+        Path normalizedPath = Paths.get(urlPath).normalize();
+        if (!normalizedPath.startsWith("/public")) {
+            throw new Exception("Illegal path supplied in the input url: " + urlPath);
+        }
         return Paths.get(BASE_DIR, urlPath);
     }
 

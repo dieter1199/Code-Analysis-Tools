@@ -26,7 +26,13 @@ func handler(w http.ResponseWriter, r *http.Request) {
     logo, ok := r.URL.Query()["img"]
     if ok && len(logo[0]) > 0 {
         currentDir, _ := os.Getwd()
-        logoPath := filepath.Join(currentDir,"images",logo[0])
+        basePath := filepath.Join(currentDir,"images")
+        logoPath := filepath.Join(basePath,logo[0])
+        if filepath.Dir(logoPath) != basePath {
+            log.Print("invalid logo path", logoPath)
+            w.WriteHeader(500)
+            return
+        }
         imgData, err := os.ReadFile(logoPath)
         if err != nil {
             log.Print(err, logoPath)

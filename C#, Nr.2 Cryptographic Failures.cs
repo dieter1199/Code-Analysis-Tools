@@ -1,6 +1,8 @@
 using System;
 using System.Security.Cryptography;
 using System.Text;
+dotnet add package BCrypt.Net-Next
+
 
 namespace PasswordSecurityExample
 {
@@ -11,12 +13,7 @@ namespace PasswordSecurityExample
             Console.WriteLine("Bitte geben Sie ein Passwort ein:");
             string userPassword = Console.ReadLine();
 
-            using (var md5Hash = MD5.Create())
-            {
-                var hash = BitConverter.ToString(md5Hash.ComputeHash(Encoding.UTF8.GetBytes(userPassword))).Replace("-", string.Empty);
-                Console.WriteLine($"MD5-Hash des Passworts: {hash}");
-            }
-
+            string passwordHash = BCrypt.Net.BCrypt.HashPassword(userPassword);
             Console.WriteLine("Überprüfung der Passwortstärke...");
             CheckPasswordStrength(userPassword);
 

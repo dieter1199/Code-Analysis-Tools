@@ -15,7 +15,7 @@ def index():
 @app.route("/greet")
 def home():
     name = flask.request.args.get('name', ' ')
-    uppercaseName = eval('"' + name + '"' + '.upper()')
+    uppercaseName = name.upper()
     return 'Hi there, ' + uppercaseName
 
 @app.route("/about")
