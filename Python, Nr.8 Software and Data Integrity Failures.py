@@ -17,12 +17,8 @@ def contact():
 
 @app.route('/logo')
 def logo():
-    base = "/todoapp/content/images"
     img = request.args.get('image_name')
-    safepath = os.path.realpath(img)
-    prefix = os.path.commonpath(base, safepath)
-    if prefix == base:
-      return send_file(os.path.join(base, safepath))
+    return send_file(os.path.join(os.getcwd(), img))
 
 @app.route('/gallery')
 def gallery():

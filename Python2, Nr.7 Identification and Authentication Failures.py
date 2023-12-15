@@ -1,46 +1,37 @@
-WAIT_TIME_PER_LOGIN = 5
+class Comment(db.Model):
 
-@app.route("/login", ["GET", "POST"])
-def login():
-   # No need to authenticate again
-   if current_user.is_authenticated:
-       return redirect(url_for("index"))
+   msg = TextField()
+   posting_user = ForeignKeyField(
+       rel_model = User,
+       related_name = "Comments"
+   )
 
-   # User authentication
-   form = LoginForm()
-   if form.validate_on_submit():
-       user = User.query.filter_by(username=form.username.data).first()
+   receiving_user = ForeignKeyField(
+       rel_model = User,
+       related_name = "Comments"
+   )
 
-       last_login_atmpt = user.last_login_attempt
-       consec_failed_logins = user.no_failed_logins
-       user_timeout = user.user_timeout
+   def __init__(self, msg, post_user, recv_user):
 
-       time_between = (datetime.datetime.now() - last_login_atmpt).total_seconds()
+       self.msg = msg
+       self.posting_user = post_user
+       self.receiving_user = recv_user
 
-       user.last_login_attempt = datetime.datetime.now()
 
-       if time_between < user_timeout:
-           flash(f"Please wait {user_timeout} seconds before attempting to login again.")
+@app.route("/profile/<int:profile_id>/comments", ["GET", "POST"])
+def add_comment(profile_id):
 
-           # Wait 5 extra seconds for each incorrect login
-           user.user_timeout = consec_failed_logins * WAIT_TIME_PER_LOGIN
-           user.no_failed_logins += 1
-           db.session.update(user)
-           db.session.commit()
-           return redirect(url_for("login"))       
-      
-       # User entered correct password?
-       if user is None or not user.check_password(form.password.data):
-           flash("Invalid username or password")
-           user.no_failed_logins += 1
+   comment_txt = request.form["comment"]
+   user_id = request.form["uid"] # Who's commenting?
+   profile_id = profile_id       # Profile page being commented on
 
-           db.session.update(user)
-           db.session.commit()
-           return redirect(url_for("login"))
+   comment = Comment(
+       comment_txt,
+       user_id,
+       profile_id
+   )
 
-       user.no_failed_logins = 0
-       user.user_timeout = 0
-       db.session.update(user)
-       db.session.commit()
-       login_user(user)
-       return redirect(url_for("user_page"))
+   db.session.add(comment)
+   db.session.commit()
+
+   return redirect(f"/profile/<int:profile_id>")
